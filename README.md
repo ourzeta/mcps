@@ -1,64 +1,52 @@
-# Marketing Campaign Platform (MCP)
+# 优惠券领取指南及API说明
 
-This repository contains the frontend and backend code for the Marketing Campaign Platform (MCP).
+## API 文档
 
-## Project Description
+MCP 服务端提供以下核心API接口：
 
-The MCP is a web application that displays a list of public promotional offers. The backend service fetches the latest promotional links and data, and the frontend displays this information in a user-friendly format.
+### **获取公开优惠活动列表**
 
-## API Documentation
+此接口用于获取所有公开的、可参与的优惠活动列表，并为每个活动动态生成最新的优惠链接。
 
-The MCP server provides the following API endpoint:
+- **HTTP 方法**: `GET`
+- **接口地址**: `/api/mcp/jutuike/public_promo_list`
+- **完整请求地址示例**: `https://<你的后端服务域名>/api/mcp/jutuike/public_promo_list`
 
-### Get Public Promotion List
+---
 
-This endpoint retrieves a list of all public, discountable promotional activities and dynamically generates the latest promotional links for each activity.
+### **返回数据格式**
 
-*   **HTTP Method**: `GET`
-*   **Endpoint**: `/api/mcp/jutuike/public_promo_list`
-*   **Example Request URL**: `https://<your-backend-service-domain>/api/mcp/jutuike/public_promo_list`
+接口的返回遵循统一的数据结构，包含 `code` 和 `data` 两个顶级字段。
 
-### Response Format
-
-The API response follows a unified data structure, containing `code` and `data` top-level fields.
+#### 1. 顶级结构
 
 ```json
 {
   "code": 200,
   "data": [ ... ]
 }
-```
 
-*   `code`: (Number) HTTP status code, `200` indicates success.
-*   `data`: (Array) An array containing all activity objects.
 
-### `data` Array Object Structure
+code: (Number) HTTP 状态码, 200 表示请求成功。
+data: (Array) 包含了所有活动对象的数组。
+data 数组中的每一个对象都代表一个独立的优惠活动，其具体字段如下：
 
-Each object in the `data` array represents an independent promotional activity, with the following fields:
+字段名	类型	说明
+activityType	String	活动的唯一类型标识符。
+activityName	String	活动的名称，用于展示。
+actId	String	活动ID。
+category	String	活动所属的分类。
+desc	String	对活动的简短描述。
+link	String	动态生成的 H5 优惠链接。如果获取失败，该字段可能为空字符串。
+miniAppLink	Object	动态生成的小程序优惠信息。如果不支持或获取失败，该字段为空对象。
+miniAppLink 对象包含了跳转到优惠小程序所需的信息。
 
-| Field Name | Type | Description |
-| --- | --- | --- |
-| `activityType` | String | The unique type identifier for the activity. |
-| `activityName` | String | The name of the activity for display. |
-| `actId` | String | The ID of the activity on the third-party platform. |
-| `category` | String | The category to which the activity belongs. |
-| `desc` | String | A brief description of the activity. |
-| `link` | String | **Dynamically generated H5 promotional link**. This field may be an empty string if it fails to be retrieved. |
-| `miniAppLink` | Object | **Dynamically generated mini-program promotional information**. This field will be an empty object if not supported or if retrieval fails. |
+字段名	类型	说明
+app_id	String	微信小程序的 AppID。
+page_path	String	小程序的目标页面路径，已包含优惠参数。
+miniCode	String	指向该小程序优惠页面的二维码图片 URL（可能为空）。
+这是一个标准的API返回JSON示例，展示了包含两个活动的数据结构。
 
-### `miniAppLink` Object Structure
-
-The `miniAppLink` object contains the information required to jump to the promotional mini-program.
-
-| Field Name | Type | Description |
-| --- | --- | --- |
-| `app_id` | String | The AppID of the WeChat mini-program. |
-| `page_path` | String | The target page path of the mini-program, already containing promotional parameters. |
-| `miniCode` | String | A QR code image URL pointing to the mini-program's promotional page (may be empty). |
-
-### Full Response Example
-
-```json
 {
   "code": 200,
   "data": [
@@ -84,66 +72,7 @@ The `miniAppLink` object contains the information required to jump to the promot
         "miniCode": "https://ut-static.udache.com/t-painter/tpainter/qrcode/qrcodeda050aa7-9c2b-58eb-a88d-86d1067059730001.jpg"
       }
     }
-    // ... more activities
   ]
 }
-```
 
-## Deployment Guide (GitHub + Render)
 
-This repository contains the frontend and backend code for the MCP server, which can be deployed online to be publicly accessible.
-
-### 1. Prerequisites
-1.  Register for a GitHub account: [https://github.com/](https://github.com/)
-2.  Register for a Render account: [https://render.com/](https://render.com/) (the free tier is sufficient for deploying the backend service)
-
-### 2. Deploy the Static Frontend (GitHub Pages)
-
-#### Step 1: Create a GitHub Repository
-1.  Log in to GitHub, click the "+" in the upper right corner → "New repository".
-2.  Enter a repository name: `mcp-javascript-deploy` (or a custom name).
-3.  Check "Public" and "Add a README file", then click "Create repository".
-
-#### Step 2: Upload the Frontend File
-1.  Go to the repository, click "Add file" → "Upload files".
-2.  Upload the `frontend/public_promo.html` file from this repository.
-
-#### Step 3: Enable GitHub Pages
-1.  In the repository page, click "Settings" → "Pages" on the left.
-2.  In the "Source" section, select the "main" branch and "/ (root)", then click "Save".
-3.  Wait for about 1 minute, then refresh the page. Your frontend page address will be displayed (e.g., `https://username.github.io/mcp-javascript-deploy/public_promo.html`).
-
-### 3. Deploy the Backend Service (Render)
-
-#### Step 1: Upload the Backend Code to GitHub
-1.  In your GitHub repository, click "Add file" → "Create new file".
-2.  Create the following files (copy the code from the repository):
-    *   `backend/app.js`
-    *   `backend/db.js`
-    *   `backend/package.json`
-
-#### Step 2: Deploy the Backend on Render
-1.  Log in to Render, click "New" → "Web Service".
-2.  Click "Connect to GitHub", authorize access to your repository, and select `mcp-javascript-deploy`.
-3.  Configure the deployment information:
-    *   Name: Custom (e.g., `mcp-js-server`)
-    *   Root Directory: `backend` (specify the backend code directory)
-    *   Build Command: `npm install` (install dependencies)
-    *   Start Command: `node app.js` (start the service)
-4.  Click "Create Web Service" and wait for the deployment to complete (about 1 minute).
-5.  Once the deployment is successful, a backend domain will be generated (e.g., `https://mcp-js-server.onrender.com`).
-
-### 4. Connect the Frontend and Backend
-1.  Open the `frontend/public_promo.html` file in your GitHub repository and click "Edit".
-2.  Find the line `const BACKEND_URL = "https://your-backend-service-domain.onrender.com"` and replace it with your Render backend domain.
-3.  Click "Commit changes" to save.
-
-### 5. Test the Access
-1.  Frontend Page: Access the address generated by GitHub Pages. You should see a list of promotional offer cards.
-2.  Backend API: Access `https://your-backend-domain.onrender.com/api/mcp/jutuike/public_promo_list`. You should see the promotional data in JSON format.
-
-## Common Issues
-
-*   **Frontend page fails to load**: Check if the `BACKEND_URL` is correct and if the Render backend has been deployed successfully.
-*   **Backend API returns 404**: Check if the API path in the code is correct and if the "Root Directory" was set to `backend` during the Render deployment.
-*   **Free tier Render service goes to sleep**: The service will be suspended after 30 minutes of inactivity. The next visit will require a few seconds to wake it up (this does not affect functionality).
