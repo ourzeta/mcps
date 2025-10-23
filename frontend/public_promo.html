@@ -35,7 +35,7 @@
     const promoList = document.getElementById('promo-list');
     const modal = document.getElementById('link-modal');
     const closeModal = document.getElementsByClassName('close')[0];
-    const BACKEND_URL = ''; // <-- Important: You need to set your backend URL here
+    const BACKEND_URL = 'https://mcps-znbg.onrender.com'; // <-- Important: You need to set your backend URL here
 
     fetch(`${BACKEND_URL}/api/mcp/jutuike/public_promo_list`)
       .then(response => response.json())
