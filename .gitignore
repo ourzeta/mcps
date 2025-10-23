@@ -1,0 +1,6 @@
+node_modules/
+mcp-db.json
+.env
+package-lock.json
+npm-debug.log*
+.DS_Store

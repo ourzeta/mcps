@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP开放优惠</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .promo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .promo-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+    .promo-item h3 { margin-top: 0; }
+    .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+    .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+    .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MCP开放优惠</h1>
+    <div id="promo-list" class="promo-list"></div>
+  </div>
+
+  <div id="link-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>优惠链接</h2>
+      <p><strong>H5链接：</strong><a id="promo-h5" href="#" target="_blank"></a></p>
+      <p><strong>Deeplink：</strong><a id="promo-deeplink" href="#" target="_blank"></a></p>
+    </div>
+  </div>
+
+  <script>
+    const promoList = document.getElementById('promo-list');
+    const modal = document.getElementById('link-modal');
+    const closeModal = document.getElementsByClassName('close')[0];
+    const BACKEND_URL = ''; // <-- Important: You need to set your backend URL here
+
+    fetch(`${BACKEND_URL}/api/mcp/jutuike/public_promo_list`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.code === 200) {
+          data.data.forEach(promo => {
+            const promoItem = document.createElement('div');
+            promoItem.className = 'promo-item';
+            promoItem.innerHTML = `
+              <h3>${promo.activityName}</h3>
+              <p>${promo.desc}</p>
+              <button onclick="getPromoLink('${promo.actId}')">获取链接</button>
+            `;
+            promoList.appendChild(promoItem);
+          });
+        }
+      });
+
+    function getPromoLink(actId) {
+      fetch(`${BACKEND_URL}/api/mcp/jutuike/get_promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.code === 200) {
+          document.getElementById('promo-h5').href = data.data.realLinks.promoH5;
+          document.getElementById('promo-h5').textContent = data.data.realLinks.promoH5;
+          document.getElementById('promo-deeplink').href = data.data.realLinks.deeplink;
+          document.getElementById('promo-deeplink').textContent = data.data.realLinks.deeplink;
+          modal.style.display = 'block';
+        }
+      });
+    }
+
+    closeModal.onclick = () => {
+      modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
+  </script>
+</body>
+</html>
