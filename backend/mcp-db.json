@@ -1,0 +1,10 @@
+{
+  "clients": [
+    {
+      "clientId": "test_client",
+      "clientSecret": "test_secret123",
+      "isActive": true
+    }
+  ],
+  "callLogs": []
+}
