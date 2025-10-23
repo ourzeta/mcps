@@ -6,22 +6,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCP开放优惠</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; background-color: #f4f5f7; }
-    .container { max-width: 960px; margin: 0 auto; }
-    h1 { text-align: center; color: #333; }
-    .promo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .promo-item { background-color: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s; }
-    .promo-item:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .promo-item h3 { margin-top: 0; color: #0056b3; }
-    .promo-item p { color: #666; font-size: 14px; }
-    .promo-item button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f4f5f7; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1 { text-align: center; color: #172b4d; }
+    .promo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+    .promo-item { background-color: #fff; border: 1px solid #dfe1e6; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s ease-in-out; display: flex; flex-direction: column; }
+    .promo-item:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .promo-item h3 { margin-top: 0; color: #0052cc; font-size: 1.1em; }
+    .promo-item .category { font-size: 0.8em; font-weight: bold; color: #42526e; background-color: #f4f5f7; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+    .promo-item .desc { color: #505f79; font-size: 0.9em; flex-grow: 1; }
+    .promo-item button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; align-self: flex-start; margin-top: 15px; }
     .promo-item button:hover { background-color: #0056b3; }
-    .loading, .error { text-align: center; font-size: 18px; color: #888; padding: 50px; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-    .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+    .loading, .error { text-align: center; font-size: 18px; color: #6b778c; padding: 50px; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+    .modal-content { background-color: #fefefe; margin: 10% auto; padding: 25px; border: none; width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+    .close { color: #aaa; position: absolute; top: 15px; right: 20px; font-size: 32px; font-weight: bold; }
     .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
-    #promo-details p { word-break: break-all; }
+    #promo-details h2 { margin-top: 0; color: #172b4d; }
+    #promo-details p { word-break: break-all; color: #42526e; }
+    #promo-details a { color: #0052cc; }
+    #promo-qrcode { display: none; width: 160px; height: 160px; margin: 15px auto; border: 1px solid #dfe1e6; border-radius: 8px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -36,9 +41,15 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <div id="promo-details">
-        <h2>优惠链接</h2>
-        <p><strong>H5链接：</strong><a id="promo-h5" href="#" target="_blank"></a></p>
-        <p><strong>小程序信息：</strong><span id="promo-miniapp"></span></p>
+        <h2>推广详情</h2>
+        <div id="h5-section" class="hidden">
+          <p><strong>H5链接:</strong> <a id="promo-h5" href="#" target="_blank"></a></p>
+        </div>
+        <div id="miniapp-section" class="hidden">
+          <p><strong>小程序:</strong></p>
+          <img id="promo-qrcode" src="" alt="小程序码"/>
+          <p id="promo-miniapp-info"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -48,22 +59,12 @@
     const modal = document.getElementById('link-modal');
     const closeModal = document.getElementsByClassName('close')[0];
     
-    // --- CONFIGURATION ---
-    // Use the backend URL provided by Render
-    const BACKEND_URL = 'https://mcps-znbg.onrender.com'; 
-    
-    // This will store all the promo data fetched from the backend
+    const BACKEND_URL = 'https://mcps-znbg.onrender.com';
     let allPromos = [];
 
-    // --- DATA FETCHING ---
     document.addEventListener('DOMContentLoaded', () => {
       fetch(`${BACKEND_URL}/api/mcp/jutuike/public_promo_list`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`网络请求失败，状态码: ${response.status}`);
-          }
-          return response.json();
-        })
+        .then(response => response.ok ? response.json() : Promise.reject(`网络请求失败: ${response.status}`))
         .then(data => {
           if (data.code === 200) {
             allPromos = data.data;
@@ -74,14 +75,13 @@
         })
         .catch(error => {
           console.error('加载优惠信息时出错:', error);
-          showError(`加载失败，请检查后端服务是否正常。错误: ${error.message}`);
+          showError(`加载失败, 请检查后端服务是否在线。错误: ${error}`);
         });
     });
 
-    // --- UI RENDERING ---
     function renderPromoList(promos) {
-      promoList.innerHTML = ''; // Clear the loading message
-      if (promos.length === 0) {
+      promoList.innerHTML = '';
+      if (!promos || promos.length === 0) {
         promoList.innerHTML = '<div class="loading">暂无优惠信息。</div>';
         return;
       }
@@ -89,9 +89,9 @@
         const promoItem = document.createElement('div');
         promoItem.className = 'promo-item';
         promoItem.innerHTML = `
+          <span class="category">${promo.category}</span>
           <h3>${promo.activityName}</h3>
-          <p><strong>分类:</strong> ${promo.category}</p>
-          <p>${promo.desc}</p>
+          <p class="desc">${promo.desc}</p>
           <button onclick="showPromoLink('${promo.actId}')">获取链接</button>
         `;
         promoList.appendChild(promoItem);
@@ -102,29 +102,43 @@
       promoList.innerHTML = `<div class="error">${message}</div>`;
     }
 
-    // --- MODAL LOGIC ---
     function showPromoLink(actId) {
       const promo = allPromos.find(p => p.actId === actId);
-      if (promo) {
-        const h5Link = document.getElementById('promo-h5');
-        h5Link.href = promo.link || '#';
-        h5Link.textContent = promo.link || '无';
+      if (!promo) return;
 
-        const miniappInfo = document.getElementById('promo-miniapp');
-        if (promo.miniAppLink && promo.miniAppLink.app_id) {
-          miniappInfo.textContent = `AppID: ${promo.miniAppLink.app_id}, Path: ${promo.miniAppLink.page_path}`;
-        } else {
-          miniappInfo.textContent = '无';
-        }
-        
-        modal.style.display = 'block';
+      const h5Section = document.getElementById('h5-section');
+      const miniappSection = document.getElementById('miniapp-section');
+
+      // Reset visibility
+      h5Section.classList.add('hidden');
+      miniappSection.classList.add('hidden');
+
+      // H5 Link
+      if (promo.link) {
+        document.getElementById('promo-h5').href = promo.link;
+        document.getElementById('promo-h5').textContent = '点击跳转';
+        h5Section.classList.remove('hidden');
       }
+
+      // Mini Program
+      if (promo.miniAppLink && promo.miniAppLink.app_id) {
+        const qrCodeImg = document.getElementById('promo-qrcode');
+        const miniappInfo = document.getElementById('promo-miniapp-info');
+        miniappInfo.textContent = `AppID: ${promo.miniAppLink.app_id}`;
+
+        if (promo.miniAppLink.miniCode) {
+          qrCodeImg.src = promo.miniAppLink.miniCode;
+          qrCodeImg.style.display = 'block';
+        } else {
+          qrCodeImg.style.display = 'none';
+        }
+        miniappSection.classList.remove('hidden');
+      } 
+
+      modal.style.display = 'block';
     }
 
-    closeModal.onclick = () => {
-      modal.style.display = 'none';
-    };
-
+    closeModal.onclick = () => modal.style.display = 'none';
     window.onclick = (event) => {
       if (event.target === modal) {
         modal.style.display = 'none';
